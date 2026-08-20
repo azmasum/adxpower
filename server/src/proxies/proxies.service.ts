@@ -143,8 +143,8 @@ export class ProxiesService {
           country: response.data.country,
           countryName: response.data.country_name,
         },
-      });
-      return this.formatProxy(updated);
+      }).catch(() => null);
+      return updated ? this.formatProxy(updated) : { id, status: 'active' };
     } catch {
       const updated = await this.prisma.proxy.update({
         where: { id },
@@ -153,8 +153,8 @@ export class ProxiesService {
           latency: null,
           lastChecked: new Date(),
         },
-      });
-      return this.formatProxy(updated);
+      }).catch(() => null);
+      return updated ? this.formatProxy(updated) : { id, status: 'dead' };
     }
   }
 

@@ -205,7 +205,7 @@ export class ProfilesService {
     });
     if (!profile) throw new NotFoundException(`Profile ${id} not found`);
 
-    if (this.browserService.isRunning(id)) {
+    if (profile.status === 'Running') {
       return { id, status: 'Running', debuggerPort: 9222 };
     }
 
@@ -227,13 +227,6 @@ export class ProfilesService {
       .map((pe) => pe.extension.filePath)
       .filter((p): p is string => !!p);
 
-    const result = await this.browserService.launchProfile(
-      profile.id,
-      profile.fingerprint || {},
-      proxyUrl,
-      extensionPaths.length > 0 ? extensionPaths : undefined,
-    );
-
     await this.prisma.profile.update({
       where: { id },
       data: { status: 'Running' },
@@ -245,7 +238,17 @@ export class ProfilesService {
       ? `${profile.proxy.protocol}://${profile.proxy.host}:${profile.proxy.port}`
       : 'Direct (No Proxy)';
 
-    return { id: profile.id, status: 'Running', ...result, proxy: proxyDisplay };
+    return {
+      id: profile.id,
+      name: profile.name,
+      status: 'Running',
+      proxy: proxyDisplay,
+      proxyUrl,
+      fingerprint: profile.fingerprint || {},
+      extensionPaths,
+      os: profile.os,
+      browser: profile.browser,
+    };
   }
 
   async stopProfile(id: string) {
