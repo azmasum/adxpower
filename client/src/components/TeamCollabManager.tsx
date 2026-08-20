@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Clock, Box, Mail, Eye, Edit, Trash2, Plus, Search, Download, Send, X, Save, Shield, UserPlus } from 'lucide-react';
 import { useProfileStore } from '../store/useProfileStore';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, getHardwareId } from '../config';
 
 const API_URL = API_BASE_URL;
 
@@ -50,24 +50,24 @@ export const TeamCollabManager: React.FC<{ activeTab: string }> = ({ activeTab }
 
   useEffect(() => { if (activeTab === 'team') fetchTeam(); if (activeTab === 'logs') fetchLogs(); }, [activeTab]);
 
-  const fetchTeam = async () => { setLoading(true); try { const res = await fetch(`${API_URL}/team`); if (res.ok) setTeam(await res.json()); } catch {} setLoading(false); };
-  const fetchLogs = async () => { setLoading(true); try { const res = await fetch(`${API_URL}/activity-logs?limit=100`); if (res.ok) setLogs(await res.json()); } catch {} setLoading(false); };
+  const fetchTeam = async () => { setLoading(true); try { const res = await fetch(`${API_URL}/team`, { headers: { 'x-hardware-id': getHardwareId() } }); if (res.ok) setTeam(await res.json()); } catch {} setLoading(false); };
+  const fetchLogs = async () => { setLoading(true); try { const res = await fetch(`${API_URL}/activity-logs?limit=100`, { headers: { 'x-hardware-id': getHardwareId() } }); if (res.ok) setLogs(await res.json()); } catch {} setLoading(false); };
 
   const handleInvite = async () => {
     if (!inviteForm.email) return;
-    try { await fetch(`${API_URL}/team`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: inviteForm.name || inviteForm.email.split('@')[0], email: inviteForm.email, role: inviteForm.role }) }); await fetchTeam(); } catch {}
+    try { await fetch(`${API_URL}/team`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-hardware-id': getHardwareId() }, body: JSON.stringify({ name: inviteForm.name || inviteForm.email.split('@')[0], email: inviteForm.email, role: inviteForm.role }) }); await fetchTeam(); } catch {}
     setShowInvite(false); setInviteForm({ name: '', email: '', role: 'Member' });
   };
 
-  const handleDelete = async (id: string) => { if (id === 'owner') return; if (!confirm('Delete this member?')) return; try { await fetch(`${API_URL}/team/${id}`, { method: 'DELETE' }); await fetchTeam(); } catch {} };
+  const handleDelete = async (id: string) => { if (id === 'owner') return; if (!confirm('Delete this member?')) return; try { await fetch(`${API_URL}/team/${id}`, { method: 'DELETE', headers: { 'x-hardware-id': getHardwareId() } }); await fetchTeam(); } catch {} };
 
   const handleEditSave = async () => {
     if (!editMember) return;
-    try { await fetch(`${API_URL}/team/${editMember.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: editMember.name, email: editMember.email, role: editMember.role, sharedProfileCount: editMember.sharedProfileCount }) }); await fetchTeam(); } catch {}
+    try { await fetch(`${API_URL}/team/${editMember.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'x-hardware-id': getHardwareId() }, body: JSON.stringify({ name: editMember.name, email: editMember.email, role: editMember.role, sharedProfileCount: editMember.sharedProfileCount }) }); await fetchTeam(); } catch {}
     setEditMember(null);
   };
 
-  const handleClearLogs = async () => { if (!confirm('Clear all activity logs?')) return; try { await fetch(`${API_URL}/activity-logs`, { method: 'DELETE' }); setLogs([]); } catch {} };
+  const handleClearLogs = async () => { if (!confirm('Clear all activity logs?')) return; try { await fetch(`${API_URL}/activity-logs`, { method: 'DELETE', headers: { 'x-hardware-id': getHardwareId() } }); setLogs([]); } catch {} };
 
   const handleExportLogs = () => {
     const csv = ['Time,User,Action,Target,IP,Status'];

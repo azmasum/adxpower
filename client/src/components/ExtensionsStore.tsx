@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Puzzle, Plus, Trash2, Power, Check, Loader2, Upload, Search, X, Package, Shield, Zap, Download } from 'lucide-react';
 import { useProfileStore } from '../store/useProfileStore';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, getHardwareId } from '../config';
 
 const API_URL = API_BASE_URL;
 
@@ -41,7 +41,7 @@ export const ExtensionsStore = () => {
 
   const fetchExtensions = async () => {
     try {
-      const res = await fetch(`${API_URL}/extensions`);
+      const res = await fetch(`${API_URL}/extensions`, { headers: { 'x-hardware-id': getHardwareId() } });
       if (res.ok) { const data = await res.json(); setExtensions(data); setLoading(false); return; }
     } catch {}
     setExtensions(BUILTIN_EXTENSIONS.map(e => ({ id: e.extId, name: e.name, extId: e.extId, description: e.desc, icon: e.icon, version: e.version, size: e.size, isCustom: false })));
@@ -49,14 +49,14 @@ export const ExtensionsStore = () => {
   };
 
   const fetchProfileExtensions = async (pid: string) => {
-    try { const res = await fetch(`${API_URL}/extensions/profile/${pid}`); if (res.ok) { setProfileExtensions(await res.json()); return; } } catch {}
+    try { const res = await fetch(`${API_URL}/extensions/profile/${pid}`, { headers: { 'x-hardware-id': getHardwareId() } }); if (res.ok) { setProfileExtensions(await res.json()); return; } } catch {}
     setProfileExtensions([]);
   };
 
   const handleInstallBuiltin = async (ext: typeof BUILTIN_EXTENSIONS[0]) => {
     setInstalling(ext.extId);
     try {
-      const res = await fetch(`${API_URL}/extensions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: ext.name, extId: ext.extId, description: ext.desc, icon: ext.icon, version: ext.version, size: ext.size }) });
+      const res = await fetch(`${API_URL}/extensions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-hardware-id': getHardwareId() }, body: JSON.stringify({ name: ext.name, extId: ext.extId, description: ext.desc, icon: ext.icon, version: ext.version, size: ext.size }) });
       if (res.ok) await fetchExtensions();
     } catch {}
     setInstalling(null);
@@ -64,29 +64,29 @@ export const ExtensionsStore = () => {
 
   const handleAssign = async (extensionId: string) => {
     if (!selectedProfileId) { alert('Select a profile first'); return; }
-    try { await fetch(`${API_URL}/extensions/assign`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profileId: selectedProfileId, extensionId }) }); await fetchProfileExtensions(selectedProfileId); } catch {}
+    try { await fetch(`${API_URL}/extensions/assign`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-hardware-id': getHardwareId() }, body: JSON.stringify({ profileId: selectedProfileId, extensionId }) }); await fetchProfileExtensions(selectedProfileId); } catch {}
   };
 
   const handleUnassign = async (extensionId: string) => {
     if (!selectedProfileId) return;
-    try { await fetch(`${API_URL}/extensions/assign`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profileId: selectedProfileId, extensionId }) }); await fetchProfileExtensions(selectedProfileId); } catch {}
+    try { await fetch(`${API_URL}/extensions/assign`, { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'x-hardware-id': getHardwareId() }, body: JSON.stringify({ profileId: selectedProfileId, extensionId }) }); await fetchProfileExtensions(selectedProfileId); } catch {}
   };
 
   const handleToggle = async (extensionId: string, enabled: boolean) => {
     if (!selectedProfileId) return;
-    try { await fetch(`${API_URL}/extensions/toggle`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profileId: selectedProfileId, extensionId, enabled }) }); await fetchProfileExtensions(selectedProfileId); } catch {}
+    try { await fetch(`${API_URL}/extensions/toggle`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'x-hardware-id': getHardwareId() }, body: JSON.stringify({ profileId: selectedProfileId, extensionId, enabled }) }); await fetchProfileExtensions(selectedProfileId); } catch {}
   };
 
   const handleDelete = async (extId: string) => {
     if (!confirm('Delete this extension?')) return;
-    try { await fetch(`${API_URL}/extensions/${extId}`, { method: 'DELETE' }); await fetchExtensions(); } catch {}
+    try { await fetch(`${API_URL}/extensions/${extId}`, { method: 'DELETE', headers: { 'x-hardware-id': getHardwareId() } }); await fetchExtensions(); } catch {}
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
     setInstalling('upload');
     try {
-      const res = await fetch(`${API_URL}/extensions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: file.name.replace('.crx', '').replace('.zip', ''), extId: 'custom_' + Date.now(), description: 'Custom uploaded extension', icon: '📦', version: '1.0.0', size: (file.size / 1024 / 1024).toFixed(2) + ' MB', isCustom: true }) });
+      const res = await fetch(`${API_URL}/extensions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-hardware-id': getHardwareId() }, body: JSON.stringify({ name: file.name.replace('.crx', '').replace('.zip', ''), extId: 'custom_' + Date.now(), description: 'Custom uploaded extension', icon: '📦', version: '1.0.0', size: (file.size / 1024 / 1024).toFixed(2) + ' MB', isCustom: true }) });
       if (res.ok) await fetchExtensions();
     } catch {}
     setInstalling(null);

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, getHardwareId } from '../config';
 
 interface RpaStep {
   id: string;
@@ -90,7 +90,7 @@ export const useRpaStore = create<RpaStore>((set, get) => ({
       
       const res = await fetch(`${API_BASE_URL}/rpa/run`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-hardware-id': getHardwareId() },
         body: JSON.stringify(payload),
       });
 
