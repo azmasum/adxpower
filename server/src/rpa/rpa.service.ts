@@ -8,9 +8,8 @@ export class RpaService {
 
   private async ensureBrowser(profileId: string): Promise<any> {
     if (!this.browserService.isRunning(profileId)) {
-      this.logger.log(`[RPA] Profile ${profileId} not running — auto-starting...`);
-      await this.browserService.launchProfile(profileId, {});
-      await new Promise(r => setTimeout(r, 2000));
+      this.logger.warn(`[RPA] Profile ${profileId} not running — please start it from the Electron app first.`);
+      throw new Error(`Profile ${profileId} is not running. Please start the browser from the app first.`);
     }
     return this.browserService.getPage(profileId);
   }
