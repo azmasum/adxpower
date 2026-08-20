@@ -4,13 +4,12 @@ import { ProxiesModule } from './proxies/proxies.module';
 import { LicenseModule } from './license/license.module';
 import { PaymentModule } from './payment/payment.module';
 import { PrismaModule } from './prisma.module';
-import { APP_GUARD } from '@nestjs/core';
-import { LicenseVerificationGuard } from './guards/license-verification.guard';
 import { RpaModule } from './rpa/rpa.module';
 import { BrowserModule } from './browser/browser.module';
 import { ExtensionsModule } from './extensions/extensions.module';
 import { TeamModule } from './team/team.module';
 import { ActivityLogModule } from './activity-log/activity-log.module';
+import { HealthController } from './health.controller';
 import { LicenseService } from './license/license.service';
 import { TrialService } from './license/trial.service';
 import { Logger } from '@nestjs/common';
@@ -28,6 +27,7 @@ import { Logger } from '@nestjs/common';
     TeamModule,
     ActivityLogModule,
   ],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule implements OnModuleInit {
