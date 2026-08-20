@@ -3,15 +3,8 @@ services:
     name: adxpower-api
     runtime: node
     plan: free
-    buildCommand:
-      - cd server
-      - npm install
-      - npx prisma generate
-      - npx nest build
-    startCommand:
-      - cd server
-      - npx prisma migrate deploy
-      - node dist/main.js
+    buildCommand: npm install && cd server && npx prisma generate && npm run build
+    startCommand: cd server && npx prisma migrate deploy && node dist/main.js
     envVars:
       - key: DATABASE_URL
         sync: false
