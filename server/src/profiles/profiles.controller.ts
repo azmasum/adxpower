@@ -45,6 +45,14 @@ export class ProfilesController {
     return this.profilesService.startProfile(id);
   }
 
+  @Post(':id/launch-data')
+  @HttpCode(HttpStatus.OK)
+  async launchData(@Param('id') id: string) {
+    const data = await this.profilesService.getLaunchData(id);
+    await this.profilesService.logActivity({ action: 'Started Profile', target: data.name });
+    return data;
+  }
+
   @Post(':id/stop')
   @HttpCode(HttpStatus.OK)
   stop(@Param('id') id: string) {

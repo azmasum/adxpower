@@ -153,6 +153,51 @@ export class ProfilesService {
     return { deleted: true };
   }
 
+  async getLaunchData(id: string) {
+    const profile = await this.prisma.profile.findUnique({
+      where: { id },
+      include: { proxy: true },
+    });
+    if (!profile) throw new NotFoundException(`Profile ${id} not found`);
+
+    let proxyUrl: string | undefined = undefined;
+    let proxyDisplay = 'Direct (No Proxy)';
+    if (profile.proxy) {
+      const p = profile.proxy;
+      if (p.username && p.password) {
+        proxyUrl = `${p.protocol}://${encodeURIComponent(p.username)}:${encodeURIComponent(p.password)}@${p.host}:${p.port}`;
+      } else {
+        proxyUrl = `${p.protocol}://${p.host}:${p.port}`;
+      }
+      proxyDisplay = `${p.protocol}://${p.host}:${p.port}`;
+    }
+
+    const pex = await this.prisma.profileExtension.findMany({
+      where: { profileId: id, enabled: true },
+      include: { extension: true },
+    });
+    const extensionPaths = pex
+      .map((pe) => pe.extension.filePath)
+      .filter((p): p is string => !!p);
+
+    await this.prisma.profile.update({
+      where: { id },
+      data: { status: 'Running' },
+    });
+
+    return {
+      id: profile.id,
+      name: profile.name,
+      status: 'Running',
+      proxy: proxyDisplay,
+      proxyUrl,
+      fingerprint: profile.fingerprint || {},
+      extensionPaths,
+      os: profile.os,
+      browser: profile.browser,
+    };
+  }
+
   async startProfile(id: string) {
     const profile = await this.prisma.profile.findUnique({
       where: { id },

@@ -87,7 +87,7 @@ function createWindow() {
 app.whenReady().then(async () => {
   createWindow();
 
-  ipcMain.handle('browser:launch', async (_event, profileId: string, options: { fingerprint?: any; proxyUrl?: string; extensionPaths?: string[] }) => {
+  ipcMain.handle('browser:launch', async (_event, profileId: string, options: { proxyUrl?: string }) => {
     if (runningBrowsers.has(profileId)) {
       return { success: true, message: 'Already running' };
     }
@@ -95,6 +95,17 @@ app.whenReady().then(async () => {
     const chromePath = findChromePath();
     if (!chromePath) {
       return { success: false, error: 'Google Chrome not found. Please install Chrome.' };
+    }
+
+    let launchData: any = {};
+    try {
+      const hwId = getSystemHardwareId();
+      const res = await axios.post(`${getApiUrl()}/profiles/${profileId}/launch-data`, {}, {
+        headers: { 'x-hardware-id': hwId }
+      });
+      launchData = res.data;
+    } catch (err: any) {
+      return { success: false, error: `Server error: ${err.response?.data?.message || err.message}` };
     }
 
     const profileDir = path.join(app.getPath('userData'), 'profiles-data', profileId);
@@ -107,17 +118,17 @@ app.whenReady().then(async () => {
       '--force-webrtc-ip-handling-policy=disable_non_proxied_udp',
     ];
 
-    if (options.proxyUrl && options.proxyUrl !== 'Direct (No Proxy)') {
+    if (launchData.proxyUrl) {
       try {
-        const parsedUrl = new URL(options.proxyUrl);
+        const parsedUrl = new URL(launchData.proxyUrl);
         args.push(`--proxy-server=${parsedUrl.protocol}//${parsedUrl.host}`);
       } catch {
-        args.push(`--proxy-server=${options.proxyUrl}`);
+        args.push(`--proxy-server=${launchData.proxyUrl}`);
       }
     }
 
-    if (options.extensionPaths && options.extensionPaths.length > 0) {
-      const validPaths = options.extensionPaths.filter((p: string) => fs.existsSync(p));
+    if (launchData.extensionPaths && launchData.extensionPaths.length > 0) {
+      const validPaths = launchData.extensionPaths.filter((p: string) => fs.existsSync(p));
       if (validPaths.length > 0) {
         args.push(`--load-extension=${validPaths.join(',')}`);
         args.push(`--disable-extensions-except=${validPaths.join(',')}`);
@@ -134,11 +145,11 @@ app.whenReady().then(async () => {
         runningBrowsers.delete(profileId);
       });
 
-      child.on('error', (err) => {
+      child.on('error', () => {
         runningBrowsers.delete(profileId);
       });
 
-      return { success: true };
+      return { success: true, proxy: launchData.proxy || 'Direct', profileName: launchData.name };
     } catch (err: any) {
       return { success: false, error: err.message };
     }
