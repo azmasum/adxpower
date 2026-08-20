@@ -100,7 +100,7 @@ app.whenReady().then(async () => {
     let launchData: any = {};
     try {
       const hwId = getSystemHardwareId();
-      const res = await axios.post(`${getApiUrl()}/profiles/${profileId}/launch-data`, {}, {
+      const res = await axios.post(`${getApiUrl()}/profiles/${profileId}/start`, {}, {
         headers: { 'x-hardware-id': hwId }
       });
       launchData = res.data;
