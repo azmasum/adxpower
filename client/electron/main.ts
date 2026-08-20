@@ -2,10 +2,10 @@ import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import axios from 'axios';
 import * as path from 'path';
 import * as fs from 'fs';
-import { execSync } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 
 let mainWindow: BrowserWindow | null = null;
-const runningBrowsers = new Map<string, any>();
+const runningBrowsers = new Map<string, ChildProcess>();
 
 function getSystemHardwareId(): string {
   try {
@@ -105,7 +105,6 @@ app.whenReady().then(async () => {
       '--no-first-run',
       '--disable-blink-features=AutomationControlled',
       '--force-webrtc-ip-handling-policy=disable_non_proxied_udp',
-      'https://www.google.com',
     ];
 
     if (options.proxyUrl && options.proxyUrl !== 'Direct (No Proxy)') {
@@ -125,41 +124,30 @@ app.whenReady().then(async () => {
       }
     }
 
-    const puppeteerMod = await (Function('return import("puppeteer-core")')() as Promise<any>);
-    const puppeteer = puppeteerMod.default || puppeteerMod;
     try {
-      const browser = await puppeteer.launch({
-        executablePath: chromePath,
-        headless: false,
-        userDataDir: profileDir,
-        args,
-        defaultViewport: null,
-        ignoreDefaultArgs: ['--enable-automation'],
-      });
+      const child = spawn(chromePath, args, { detached: true, stdio: 'ignore' });
+      child.unref();
 
-      runningBrowsers.set(profileId, browser);
+      runningBrowsers.set(profileId, child);
 
-      const pages = await browser.pages();
-      const page = pages[0] || await browser.newPage();
-
-      if (options.fingerprint?.userAgent) {
-        await page.setUserAgent(options.fingerprint.userAgent);
-      }
-
-      browser.on('disconnected', () => {
+      child.on('exit', () => {
         runningBrowsers.delete(profileId);
       });
 
-      return { success: true, wsEndpoint: browser.wsEndpoint() };
+      child.on('error', (err) => {
+        runningBrowsers.delete(profileId);
+      });
+
+      return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message };
     }
   });
 
   ipcMain.handle('browser:close', async (_event, profileId: string) => {
-    const browser = runningBrowsers.get(profileId);
-    if (browser) {
-      await browser.close().catch(() => {});
+    const child = runningBrowsers.get(profileId);
+    if (child && !child.killed) {
+      child.kill('SIGTERM');
       runningBrowsers.delete(profileId);
     }
     return { success: true };
