@@ -64,6 +64,7 @@ export class LicenseController {
         generatedKeys.push(key);
       } catch (e: any) {
         this.logger.error(`Failed to generate license: ${e.message}`);
+        generatedKeys.push(`ERROR: ${e.message}`);
       }
     }
 
