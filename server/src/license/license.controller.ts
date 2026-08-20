@@ -51,7 +51,7 @@ export class LicenseController {
       try {
         await this.prisma.license.create({
           data: {
-            userId: `admin-${Date.now()}`,
+            userId: `admin-${key}`,
             licenseKey: key,
             status: 'active',
             maxProfiles: plan.includes('Agency') ? 50 : plan.includes('Pro') ? 20 : 5,
