@@ -183,6 +183,7 @@ app.whenReady().then(async () => {
     try {
       await axios.post(`${getApiUrl()}/profiles/${profileId}/stop`, {}, {
         headers: { 'x-hardware-id': getSystemHardwareId() }
+      });
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message };
