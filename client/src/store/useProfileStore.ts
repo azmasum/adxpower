@@ -100,7 +100,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     try {
       const electronAPI = (window as any).electronAPI;
       if (electronAPI?.launchBrowser) {
-        const result = await electronAPI.launchBrowser(id);
+        const result = await electronAPI.launchBrowser(id, { hwid: getHardwareId() });
         if (!result.success) {
           alert(`Failed to open browser: ${result.error || 'Unknown error'}`);
           set((state) => ({

@@ -87,7 +87,7 @@ function createWindow() {
 app.whenReady().then(async () => {
   createWindow();
 
-  ipcMain.handle('browser:launch', async (_event, profileId: string, options: { proxyUrl?: string }) => {
+  ipcMain.handle('browser:launch', async (_event, profileId: string, options: { hwid?: string }) => {
     if (runningBrowsers.has(profileId)) {
       return { success: true, message: 'Already running' };
     }
@@ -99,7 +99,7 @@ app.whenReady().then(async () => {
 
     let launchData: any = {};
     try {
-      const hwId = getSystemHardwareId();
+      const hwId = options?.hwid || getSystemHardwareId();
       const res = await axios.post(`${getApiUrl()}/profiles/${profileId}/start`, {}, {
         headers: { 'x-hardware-id': hwId }
       });
