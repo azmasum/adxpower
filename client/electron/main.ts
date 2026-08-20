@@ -2,9 +2,10 @@ import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import axios from 'axios';
 import * as path from 'path';
 import * as fs from 'fs';
+import { execSync } from 'child_process';
 
 let mainWindow: BrowserWindow | null = null;
-const SERVER_PORT = 3000;
+const runningBrowsers = new Map<string, any>();
 
 function getSystemHardwareId(): string {
   try {
@@ -23,11 +24,28 @@ function getServerUrl(): string {
       if (settings.serverUrl) return settings.serverUrl;
     }
   } catch {}
-  return `http://localhost:${SERVER_PORT}`;
+  return `http://localhost:3000`;
 }
 
 function getApiUrl(): string {
   return `${getServerUrl()}/api/v1`;
+}
+
+function findChromePath(): string | null {
+  const candidates = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    path.join(process.env.LOCALAPPDATA || '', 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    path.join(process.env.PROGRAMFILES || '', 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return p;
+  }
+  return null;
 }
 
 function createWindow() {
@@ -69,6 +87,87 @@ function createWindow() {
 app.whenReady().then(async () => {
   createWindow();
 
+  ipcMain.handle('browser:launch', async (_event, profileId: string, options: { fingerprint?: any; proxyUrl?: string; extensionPaths?: string[] }) => {
+    if (runningBrowsers.has(profileId)) {
+      return { success: true, message: 'Already running' };
+    }
+
+    const chromePath = findChromePath();
+    if (!chromePath) {
+      return { success: false, error: 'Google Chrome not found. Please install Chrome.' };
+    }
+
+    const profileDir = path.join(app.getPath('userData'), 'profiles-data', profileId);
+    if (!fs.existsSync(profileDir)) fs.mkdirSync(profileDir, { recursive: true });
+
+    const args = [
+      `--user-data-dir=${profileDir}`,
+      '--no-first-run',
+      '--disable-blink-features=AutomationControlled',
+      '--force-webrtc-ip-handling-policy=disable_non_proxied_udp',
+      'https://www.google.com',
+    ];
+
+    if (options.proxyUrl && options.proxyUrl !== 'Direct (No Proxy)') {
+      try {
+        const parsedUrl = new URL(options.proxyUrl);
+        args.push(`--proxy-server=${parsedUrl.protocol}//${parsedUrl.host}`);
+      } catch {
+        args.push(`--proxy-server=${options.proxyUrl}`);
+      }
+    }
+
+    if (options.extensionPaths && options.extensionPaths.length > 0) {
+      const validPaths = options.extensionPaths.filter((p: string) => fs.existsSync(p));
+      if (validPaths.length > 0) {
+        args.push(`--load-extension=${validPaths.join(',')}`);
+        args.push(`--disable-extensions-except=${validPaths.join(',')}`);
+      }
+    }
+
+    const puppeteer = require('puppeteer-core');
+    try {
+      const browser = await puppeteer.launch({
+        executablePath: chromePath,
+        headless: false,
+        userDataDir: profileDir,
+        args,
+        defaultViewport: null,
+        ignoreDefaultArgs: ['--enable-automation'],
+      });
+
+      runningBrowsers.set(profileId, browser);
+
+      const pages = await browser.pages();
+      const page = pages[0] || await browser.newPage();
+
+      if (options.fingerprint?.userAgent) {
+        await page.setUserAgent(options.fingerprint.userAgent);
+      }
+
+      browser.on('disconnected', () => {
+        runningBrowsers.delete(profileId);
+      });
+
+      return { success: true, wsEndpoint: browser.wsEndpoint() };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle('browser:close', async (_event, profileId: string) => {
+    const browser = runningBrowsers.get(profileId);
+    if (browser) {
+      await browser.close().catch(() => {});
+      runningBrowsers.delete(profileId);
+    }
+    return { success: true };
+  });
+
+  ipcMain.handle('browser:isRunning', (_event, profileId: string) => {
+    return runningBrowsers.has(profileId);
+  });
+
   ipcMain.handle('profile:open', async (event, profileId) => {
     try {
       const response = await axios.post(`${getApiUrl()}/profiles/${profileId}/start`, {}, {
@@ -82,7 +181,8 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('profile:close', async (event, profileId) => {
     try {
-      await axios.post(`${getApiUrl()}/profiles/${profileId}/stop`);
+      await axios.post(`${getApiUrl()}/profiles/${profileId}/stop`, {}, {
+        headers: { 'x-hardware-id': getSystemHardwareId() }
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message };
@@ -125,6 +225,10 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('get:serverUrl', () => {
     return getServerUrl();
+  });
+
+  ipcMain.handle('get:hardwareId', () => {
+    return getSystemHardwareId();
   });
 
   app.on('activate', () => {

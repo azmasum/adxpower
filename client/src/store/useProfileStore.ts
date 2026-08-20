@@ -98,17 +98,29 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       profiles: state.profiles.map(p => p.id === id ? { ...p, status: 'Running' as const } : p)
     }));
     try {
-      const res = await fetch(`${PROFILES_URL}/${id}/start`, {
-        method: 'POST',
-        headers: { 'x-hardware-id': getHardwareId() },
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(`Failed to open browser: ${data.message || 'Server error'}`);
-        set((state) => ({
-          profiles: state.profiles.map(p => p.id === id ? { ...p, status: 'Stopped' as const } : p)
-        }));
-        return;
+      const electronAPI = (window as any).electronAPI;
+      if (electronAPI?.launchBrowser) {
+        const result = await electronAPI.launchBrowser(id, {});
+        if (!result.success) {
+          alert(`Failed to open browser: ${result.error || 'Unknown error'}`);
+          set((state) => ({
+            profiles: state.profiles.map(p => p.id === id ? { ...p, status: 'Stopped' as const } : p)
+          }));
+          return;
+        }
+      } else {
+        const res = await fetch(`${PROFILES_URL}/${id}/start`, {
+          method: 'POST',
+          headers: { 'x-hardware-id': getHardwareId() },
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert(`Failed to open browser: ${data.message || 'Server error'}`);
+          set((state) => ({
+            profiles: state.profiles.map(p => p.id === id ? { ...p, status: 'Stopped' as const } : p)
+          }));
+          return;
+        }
       }
       get().fetchProfiles();
     } catch (e: any) {
@@ -159,6 +171,10 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       profiles: state.profiles.map(p => p.id === id ? { ...p, status: 'Stopped' as const } : p)
     }));
     try {
+      const electronAPI = (window as any).electronAPI;
+      if (electronAPI?.closeBrowser) {
+        await electronAPI.closeBrowser(id);
+      }
       await fetch(`${PROFILES_URL}/${id}/stop`, {
         method: 'POST',
         headers: { 'x-hardware-id': getHardwareId() },
