@@ -125,7 +125,8 @@ app.whenReady().then(async () => {
       }
     }
 
-    const puppeteer = require('puppeteer-core');
+    const puppeteerMod = await (Function('return import("puppeteer-core")')() as Promise<any>);
+    const puppeteer = puppeteerMod.default || puppeteerMod;
     try {
       const browser = await puppeteer.launch({
         executablePath: chromePath,
