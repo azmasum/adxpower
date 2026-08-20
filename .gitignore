@@ -14,3 +14,5 @@ template.db
 Thumbs.db
 *.log
 package-lock.json
+Dockerfile
+docker-compose.yml
