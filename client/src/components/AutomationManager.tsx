@@ -79,33 +79,58 @@ export const AutomationManager: React.FC<{ activeTab: string }> = ({ activeTab }
     };
 
     addLog(`Master: ${syncMasterId} | Slaves: ${allStopped.length}`);
-    addLog('Starting master profile...');
 
-    try {
-      const res = await fetch(`${API_URL}/profiles/${syncMasterId}/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-hardware-id': getHardwareId() },
-      });
-      const data = await res.json();
-      if (res.ok) addLog(`Master browser launched (${data.wsEndpoint ? 'connected' : 'ready'})`, 'ok');
-      else addLog(`Master launch failed: ${data.message || 'Unknown error'}`, 'err');
-    } catch (e: any) { addLog(`Master error: ${e.message}`, 'err'); }
+    const electronAPI = (window as any).electronAPI;
 
-    addLog(`Starting ${allStopped.length} slave profiles...`);
-    let started = 0;
-    for (const sp of allStopped) {
+    if (electronAPI?.startSync) {
+      addLog('Starting all profiles locally...');
+      const slaveIds = allStopped.map((p: any) => p.id);
+
+      const startRes = await electronAPI.launchBrowser(syncMasterId);
+      if (!startRes.success) { addLog(`Master failed: ${startRes.error}`, 'err'); setIsSyncing(false); return; }
+      addLog('Master started', 'ok');
+
+      let started = 0;
+      for (const sid of slaveIds) {
+        const res = await electronAPI.launchBrowser(sid);
+        if (res.success) { started++; addLog(`  Slave started: ${sid}`, 'ok'); }
+        else addLog(`  Slave failed: ${sid}`, 'err');
+      }
+
+      addLog(`Connecting CDP sync...`);
+      const syncRes = await electronAPI.startSync(syncMasterId, slaveIds, syncOptions);
+      if (syncRes.success) {
+        addLog(`Sync active - ${syncRes.connected} windows`, 'ok');
+        addLog(`Options: clicks=${syncOptions.clicks} typing=${syncOptions.typing} scroll=${syncOptions.scroll}`);
+      } else {
+        addLog(`Sync connect failed: ${syncRes.error}`, 'err');
+      }
+    } else {
+      addLog('Starting master profile...');
       try {
-        const res = await fetch(`${API_URL}/profiles/${sp.id}/start`, {
+        const res = await fetch(`${API_URL}/profiles/${syncMasterId}/start`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-hardware-id': getHardwareId() },
         });
-        if (res.ok) { started++; addLog(`  Slave started: ${sp.name}`, 'ok'); }
-        else addLog(`  Slave failed: ${sp.name}`, 'err');
-      } catch { addLog(`  Slave error: ${sp.name}`, 'err'); }
-    }
+        const data = await res.json();
+        if (res.ok) addLog(`Master browser launched`, 'ok');
+        else addLog(`Master launch failed: ${data.message || 'Unknown error'}`, 'err');
+      } catch (e: any) { addLog(`Master error: ${e.message}`, 'err'); }
 
-    addLog(`Sync active — ${started + 1} windows running`);
-    addLog(`Options: clicks=${syncOptions.clicks} typing=${syncOptions.typing} scroll=${syncOptions.scroll}`);
+      addLog(`Starting ${allStopped.length} slave profiles...`);
+      let started = 0;
+      for (const sp of allStopped) {
+        try {
+          const res = await fetch(`${API_URL}/profiles/${sp.id}/start`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-hardware-id': getHardwareId() },
+          });
+          if (res.ok) { started++; addLog(`  Slave started: ${sp.name}`, 'ok'); }
+          else addLog(`  Slave failed: ${sp.name}`, 'err');
+        } catch { addLog(`  Slave error: ${sp.name}`, 'err'); }
+      }
+      addLog(`Sync active — ${started + 1} windows running`);
+    }
     fetchProfiles();
   };
 
@@ -113,20 +138,21 @@ export const AutomationManager: React.FC<{ activeTab: string }> = ({ activeTab }
     setIsSyncing(false);
     setSyncLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] ▸ Stopping sync...`]);
 
+    const electronAPI = (window as any).electronAPI;
+    if (electronAPI?.stopSync && syncMasterId) {
+      await electronAPI.stopSync(syncMasterId);
+    }
+
     for (const sid of syncSlaves) {
       try {
-        await fetch(`${API_URL}/profiles/${sid}/stop`, {
-          method: 'POST',
-          headers: { 'x-hardware-id': getHardwareId() },
-        });
+        if (electronAPI?.closeBrowser) await electronAPI.closeBrowser(sid);
+        else await fetch(`${API_URL}/profiles/${sid}/stop`, { method: 'POST', headers: { 'x-hardware-id': getHardwareId() } });
       } catch {}
     }
     if (syncMasterId) {
       try {
-        await fetch(`${API_URL}/profiles/${syncMasterId}/stop`, {
-          method: 'POST',
-          headers: { 'x-hardware-id': getHardwareId() },
-        });
+        if (electronAPI?.closeBrowser) await electronAPI.closeBrowser(syncMasterId);
+        else await fetch(`${API_URL}/profiles/${syncMasterId}/stop`, { method: 'POST', headers: { 'x-hardware-id': getHardwareId() } });
       } catch {}
     }
 

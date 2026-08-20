@@ -93,6 +93,8 @@ export const FingerprintManager = () => {
   const [genAudio, setGenAudio] = useState('Noise');
   const [selected, setSelected] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [applyProfileId, setApplyProfileId] = useState('');
+  const [applyStatus, setApplyStatus] = useState('');
 
   const persist = useCallback((newFps: BrowserFingerprint[]) => {
     setFingerprints(newFps);
@@ -123,6 +125,19 @@ export const FingerprintManager = () => {
   const handleCopyFingerprint = () => {
     const fp = fingerprints.find(f => f.id === selected);
     if (fp) { navigator.clipboard.writeText(JSON.stringify(fp, null, 2)); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+  };
+
+  const handleApplyToFingerprint = async () => {
+    if (!selected || !applyProfileId) { alert('Select a fingerprint and profile'); return; }
+    const fp = fingerprints.find(f => f.id === selected);
+    if (!fp) return;
+    const electronAPI = (window as any).electronAPI;
+    if (!electronAPI?.applyFingerprint) { alert('Fingerprint apply requires Electron app'); return; }
+    setApplyStatus('Applying...');
+    const result = await electronAPI.applyFingerprint(applyProfileId, fp);
+    if (result.success) setApplyStatus('Applied!');
+    else setApplyStatus(`Error: ${result.error}`);
+    setTimeout(() => setApplyStatus(''), 3000);
   };
 
   const handleExport = () => {
@@ -279,6 +294,18 @@ export const FingerprintManager = () => {
               <div className="mt-3">
                 <span className="text-gray-400 text-[10px] uppercase tracking-wider font-medium">User Agent</span>
                 <div className="text-[10px] text-gray-300 font-mono mt-1.5 break-all bg-surface-card p-2.5 rounded-lg border border-surface-border">{selectedFp.userAgent}</div>
+              </div>
+              <div className="mt-4 p-3 bg-surface-card border border-surface-border rounded-lg">
+                <label className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Apply to Profile</label>
+                <div className="flex gap-2 mt-2">
+                  <input value={applyProfileId} onChange={e => setApplyProfileId(e.target.value)} placeholder="Profile ID"
+                    className="flex-1 bg-surface-base border border-surface-border rounded-lg p-2 text-[12px] text-white input-glow" />
+                  <button onClick={handleApplyToFingerprint}
+                    className="bg-brand-500/20 border border-brand-500/30 text-brand-400 px-3 py-2 rounded-lg text-[11px] font-semibold hover:bg-brand-500/30 transition-all">
+                    Apply
+                  </button>
+                </div>
+                {applyStatus && <p className={`mt-1.5 text-[10px] ${applyStatus.startsWith('Error') ? 'text-accent-rose' : 'text-accent-emerald'}`}>{applyStatus}</p>}
               </div>
             </div>
           ) : (

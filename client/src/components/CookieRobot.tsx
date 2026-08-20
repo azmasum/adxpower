@@ -27,15 +27,35 @@ export const CookieRobot = () => {
 
   const addLog = (msg: string) => setWarmLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
 
-  const handleImport = () => {
+  const handleImport = async () => {
     if (!cookies.trim()) { alert('Paste cookies first'); return; }
     setIsImporting(true);
     try {
-      let count = 0;
-      if (cookies.trim().startsWith('[') || cookies.trim().startsWith('{')) { const p = JSON.parse(cookies); count = Array.isArray(p) ? p.length : 1; }
-      else { count = cookies.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length; }
-      setTimeout(() => { setImportedCount(count); setIsImporting(false); try { localStorage.setItem('imported_cookies', cookies); } catch {} }, 600);
-    } catch { alert('Invalid cookie format. Use JSON or Netscape format'); setIsImporting(false); }
+      let parsed: any[] = [];
+      if (cookies.trim().startsWith('[') || cookies.trim().startsWith('{')) {
+        const p = JSON.parse(cookies);
+        parsed = Array.isArray(p) ? p : [p];
+      } else {
+        parsed = cookies.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).map(l => {
+          const parts = l.split('\t');
+          return { domain: parts[0], name: parts[2], value: parts[3], path: parts[5], secure: parts[3] === 'TRUE', httpOnly: false };
+        });
+      }
+
+      const electronAPI = (window as any).electronAPI;
+      if (electronAPI?.importCookies && selectedProfileId) {
+        const result = await electronAPI.importCookies(selectedProfileId, parsed);
+        if (result.success) {
+          setImportedCount(result.imported);
+        } else {
+          alert(`Import failed: ${result.error}`);
+        }
+      } else {
+        setImportedCount(parsed.length);
+        try { localStorage.setItem('imported_cookies', cookies); } catch {}
+      }
+    } catch { alert('Invalid cookie format. Use JSON or Netscape format'); }
+    setIsImporting(false);
   };
 
   const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,13 +63,26 @@ export const CookieRobot = () => {
     const reader = new FileReader(); reader.onload = (ev) => setCookies(ev.target?.result as string); reader.readAsText(file);
   };
 
-  const handleExport = () => {
-    try {
-      const data = cookies || localStorage.getItem('imported_cookies') || '[]';
-      const blob = new Blob([data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cookies_export_${Date.now()}.json`;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-    } catch { alert('Export failed'); }
+  const handleExport = async () => {
+    const electronAPI = (window as any).electronAPI;
+    if (electronAPI?.exportCookies && selectedProfileId) {
+      const result = await electronAPI.exportCookies(selectedProfileId);
+      if (result.success) {
+        const data = JSON.stringify(result.cookies, null, 2);
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cookies_${selectedProfileId}_${Date.now()}.json`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      } else {
+        alert(`Export failed: ${result.error}`);
+      }
+    } else {
+      try {
+        const data = cookies || localStorage.getItem('imported_cookies') || '[]';
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cookies_export_${Date.now()}.json`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      } catch { alert('Export failed'); }
+    }
   };
 
   const handleCopy = () => { try { navigator.clipboard.writeText(cookies); } catch {} };
@@ -105,22 +138,33 @@ export const CookieRobot = () => {
     addLog(`Sites: ${siteList.join(', ')}`);
 
     try {
-      addLog(`Launching browser for profile ${selectedProfileId}...`);
-      const startRes = await fetch(`${API_URL}/profiles/${selectedProfileId}/start`, { method: 'POST', headers: { 'x-hardware-id': getHardwareId() } });
-      if (!startRes.ok) { const errData = await startRes.json().catch(() => ({})); addLog(`ERROR: Failed to start - ${errData.message || startRes.status}`); setIsWarming(false); return; }
-      addLog('Browser launched. Warming up...');
-    } catch (e: any) { addLog(`ERROR: ${e.message}`); setIsWarming(false); return; }
+      const electronAPI = (window as any).electronAPI;
+      if (electronAPI?.runWarmup) {
+        addLog('Running locally via Electron...');
+        const result = await electronAPI.runWarmup(selectedProfileId, siteList);
+        if (result.logs) result.logs.forEach((l: string) => addLog(l));
+        if (!result.success) addLog(`ERROR: ${result.error}`);
+        else addLog(`Warm-up completed - ${siteList.length} sites visited`);
+        setProgress(100);
+      } else {
+        addLog(`Launching browser for profile ${selectedProfileId}...`);
+        const startRes = await fetch(`${API_URL}/profiles/${selectedProfileId}/start`, { method: 'POST', headers: { 'x-hardware-id': getHardwareId() } });
+        if (!startRes.ok) { const errData = await startRes.json().catch(() => ({})); addLog(`ERROR: Failed to start - ${errData.message || startRes.status}`); setIsWarming(false); return; }
+        addLog('Browser launched. Warming up...');
 
-    for (let i = 0; i < siteList.length; i++) {
-      if (!abortRef.current || abortRef.current.signal.aborted) { addLog('Stopped by user'); break; }
-      const site = siteList[i]; const pct = Math.round(((i + 1) / siteList.length) * 100); setProgress(pct);
-      addLog(`Visiting ${site}.com...`); await new Promise(r => setTimeout(r, 1500 + Math.random() * 1000));
-      addLog(`  Scrolling ${site}.com...`); await new Promise(r => setTimeout(r, 800 + Math.random() * 500));
-      addLog(`  Done (${pct}%)`);
-    }
+        for (let i = 0; i < siteList.length; i++) {
+          if (!abortRef.current || abortRef.current.signal.aborted) { addLog('Stopped by user'); break; }
+          const site = siteList[i]; const pct = Math.round(((i + 1) / siteList.length) * 100); setProgress(pct);
+          addLog(`Visiting ${site}.com...`); await new Promise(r => setTimeout(r, 1500 + Math.random() * 1000));
+          addLog(`  Scrolling ${site}.com...`); await new Promise(r => setTimeout(r, 800 + Math.random() * 500));
+          addLog(`  Done (${pct}%)`);
+        }
 
-    try { await fetch(`${API_URL}/profiles/${selectedProfileId}/stop`, { method: 'POST', headers: { 'x-hardware-id': getHardwareId() } }); addLog('Browser closed'); } catch {}
-    addLog(`Warm-up completed - ${siteList.length} sites visited`); setIsWarming(false); setProgress(100);
+        try { await fetch(`${API_URL}/profiles/${selectedProfileId}/stop`, { method: 'POST', headers: { 'x-hardware-id': getHardwareId() } }); addLog('Browser closed'); } catch {}
+        addLog(`Warm-up completed - ${siteList.length} sites visited`); setProgress(100);
+      }
+    } catch (e: any) { addLog(`ERROR: ${e.message}`); }
+    setIsWarming(false);
   };
 
   const handleStopWarmup = () => { if (abortRef.current) abortRef.current.abort(); setIsWarming(false); setProgress(0); addLog('Stopping...'); };
