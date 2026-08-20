@@ -29,7 +29,7 @@ export class LicenseVerificationGuard implements CanActivate {
 
     let license = null;
     try {
-      license = await this.prisma.license.findFirst({ where: { userId: user.id } });
+      license = await this.prisma.license.findFirst({ where: { hardwareId } });
     } catch (e: any) {
       this.logger.error(`License query failed: ${e.message}`);
       throw new UnauthorizedException('License verification failed');
