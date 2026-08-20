@@ -49,15 +49,12 @@ export class LicenseController {
     for (let i = 0; i < count; i++) {
       const key = `ADX-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
       try {
-        const userId = `admin-${key}`;
-        await this.prisma.user.upsert({
-          where: { email: `${userId}@adxpower.local` },
-          update: {},
-          create: { email: `${userId}@adxpower.local`, password: 'admin-generated' },
+        const user = await this.prisma.user.create({
+          data: { email: `license-${Date.now()}-${i}@adxpower.local`, password: 'admin-generated' },
         });
         await this.prisma.license.create({
           data: {
-            userId,
+            userId: user.id,
             licenseKey: key,
             status: 'active',
             maxProfiles: plan.includes('Agency') ? 50 : plan.includes('Pro') ? 20 : 5,
