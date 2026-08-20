@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dist-electron/
+release/
+server/dist/
+profiles-data/
+*.db
+*.db-journal
+template.db
+.env
+.env.local
+.prisma/
+.DS_Store
+Thumbs.db
+*.log
+package-lock.json

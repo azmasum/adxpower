@@ -1,0 +1,20 @@
+{
+  "name": "adxpower",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "bootstrap": "npm install"
+  },
+  "dependencies": {
+    "7zip-bin": "^5.2.0",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.2.0"
+  }
+}

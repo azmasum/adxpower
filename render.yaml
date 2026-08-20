@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: adxpower-api
+    runtime: node
+    plan: free
+    buildCommand:
+      - cd server
+      - npm install
+      - npx prisma generate
+      - npx nest build
+    startCommand:
+      - cd server
+      - npx prisma migrate deploy
+      - node dist/main.js
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: PORT
+        value: 3000
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_MODE
+        value: live
+      - key: ADMIN_API_KEY
+        sync: false
+      - key: OFFLINE_SECRET
+        sync: false
+      - key: NODE_ENV
+        value: production

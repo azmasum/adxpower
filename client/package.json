@@ -1,0 +1,58 @@
+{
+  "name": "adxpower-client",
+  "version": "1.0.0",
+  "description": "AdxPower - Anti-Detect Browser Platform",
+  "author": "AdxPower Team",
+  "main": "dist-electron/electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "electron:dev": "concurrently -k \"npm run dev\" \"tsc -p tsconfig.electron.json --watch\" \"wait-on http://localhost:5173 && electron .\"",
+    "dist": "npm run build && electron-builder",
+    "electron:build": "tsc -p tsconfig.electron.json && npm run build && electron-builder --win"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "lucide-react": "^0.290.0",
+    "node-machine-id": "^1.1.12",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zustand": "^4.4.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.5.4",
+    "concurrently": "^8.2.0",
+    "electron": "27.3.11",
+    "electron-builder": "^24.6.0",
+    "postcss": "^8.5.26",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.2.0",
+    "vite": "^4.5.0",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.adxpower.app",
+    "productName": "AdxPower",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/adxpower-logo.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AdxPower"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#818cf8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#22d3ee;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#3b82f6" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="56" fill="url(#grad1)" filter="url(#shadow)" opacity="0.15"/>
+  <circle cx="60" cy="60" r="52" fill="none" stroke="url(#grad2)" stroke-width="1.5" opacity="0.6"/>
+  <!-- Lightning bolt / Power icon -->
+  <g filter="url(#glow)">
+    <path d="M68 22L42 62H56L50 98L82 52H66L68 22Z" fill="url(#grad2)" stroke="url(#grad1)" stroke-width="1" stroke-linejoin="round"/>
+  </g>
+  <!-- Inner accent -->
+  <path d="M64 38L50 62H58L55 82L74 56H66L64 38Z" fill="white" opacity="0.15"/>
+  <!-- Orbit ring -->
+  <ellipse cx="60" cy="60" rx="46" ry="18" fill="none" stroke="url(#grad2)" stroke-width="0.8" opacity="0.3" transform="rotate(-20 60 60)"/>
+  <circle cx="104" cy="48" r="3" fill="#22d3ee" opacity="0.8"/>
+</svg>

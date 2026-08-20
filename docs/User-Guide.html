@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdxPower v1.0 — User Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #0f1117; color: #e2e8f0; line-height: 1.7; padding: 0; }
+  @media print { body { background: #fff; color: #1a1a2e; } .page-break { page-break-before: always; } }
+
+  .cover { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f1117 0%, #1a1b2e 50%, #0f1117 100%); text-align: center; padding: 60px 40px; }
+  .cover-logo { width: 100px; height: 100px; margin-bottom: 30px; }
+  .cover h1 { font-size: 48px; font-weight: 800; background: linear-gradient(135deg, #6366f1, #3b82f6, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; }
+  .cover .subtitle { font-size: 20px; color: #94a3b8; margin-bottom: 8px; }
+  .cover .version { font-size: 14px; color: #64748b; }
+  .cover .date { font-size: 13px; color: #475569; margin-top: 40px; }
+
+  .toc { padding: 60px 80px; max-width: 900px; margin: 0 auto; }
+  .toc h2 { font-size: 28px; font-weight: 700; color: #6366f1; margin-bottom: 30px; border-bottom: 2px solid #6366f1; padding-bottom: 10px; }
+  .toc-list { list-style: none; }
+  .toc-list li { padding: 10px 0; border-bottom: 1px solid #1e293b; }
+  .toc-list li a { color: #e2e8f0; text-decoration: none; font-size: 15px; font-weight: 500; }
+  .toc-list li a:hover { color: #6366f1; }
+  .toc-list li .num { color: #6366f1; font-weight: 700; margin-right: 12px; }
+
+  .content { max-width: 820px; margin: 0 auto; padding: 40px 80px 80px; }
+  @media print { .content { padding: 20px 40px; } }
+
+  h2.section-title { font-size: 30px; font-weight: 800; color: #f1f5f9; margin: 60px 0 20px; padding-bottom: 10px; border-bottom: 3px solid #6366f1; }
+  h3 { font-size: 20px; font-weight: 700; color: #a5b4fc; margin: 35px 0 12px; }
+  h4 { font-size: 16px; font-weight: 600; color: #93c5fd; margin: 20px 0 8px; }
+  p { margin-bottom: 14px; font-size: 14.5px; color: #cbd5e1; }
+  @media print { h2.section-title { color: #1a1a2e; } h3 { color: #4338ca; } h4 { color: #2563eb; } p { color: #334155; } }
+
+  ul, ol { margin: 8px 0 16px 24px; font-size: 14px; color: #cbd5e1; }
+  li { margin-bottom: 6px; }
+  @media print { ul, ol { color: #334155; } }
+
+  .step { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px 24px; margin: 16px 0; }
+  .step-num { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: linear-gradient(135deg, #6366f1, #3b82f6); color: #fff; border-radius: 50%; font-size: 13px; font-weight: 700; margin-right: 10px; flex-shrink: 0; }
+  .step-content { display: flex; align-items: flex-start; }
+  .step-text { font-size: 14px; color: #e2e8f0; }
+  @media print { .step { background: #f8fafc; border-color: #e2e8f0; } .step-text { color: #334155; } .step-num { background: #4338ca; } }
+
+  .tip { background: #064e3b; border: 1px solid #059669; border-radius: 10px; padding: 16px 20px; margin: 16px 0; font-size: 13.5px; color: #a7f3d0; }
+  .tip strong { color: #34d399; }
+  @media print { .tip { background: #ecfdf5; border-color: #86efac; color: #166534; } .tip strong { color: #15803d; } }
+
+  .warning { background: #451a03; border: 1px solid #d97706; border-radius: 10px; padding: 16px 20px; margin: 16px 0; font-size: 13.5px; color: #fde68a; }
+  .warning strong { color: #fbbf24; }
+  @media print { .warning { background: #fffbeb; border-color: #f59e0b; color: #92400e; } .warning strong { color: #b45309; } }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13.5px; }
+  th { background: #1e293b; color: #a5b4fc; padding: 10px 14px; text-align: left; font-weight: 600; border: 1px solid #334155; }
+  td { padding: 10px 14px; border: 1px solid #334155; color: #cbd5e1; }
+  tr:nth-child(even) td { background: #1e293b40; }
+  @media print { th { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; } td { border-color: #e2e8f0; color: #334155; } tr:nth-child(even) td { background: #f8fafc; } }
+
+  code { background: #1e293b; color: #38bdf8; padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'Fira Code', monospace; }
+  @media print { code { background: #f1f5f9; color: #0369a1; } }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-blue { background: #1e3a5f; color: #60a5fa; }
+  .badge-green { background: #064e3b; color: #34d399; }
+  .badge-amber { background: #451a03; color: #fbbf24; }
+  @media print { .badge-blue { background: #dbeafe; color: #1d4ed8; } .badge-green { background: #dcfce7; color: #16a34a; } .badge-amber { background: #fef3c7; color: #d97706; } }
+
+  .footer { text-align: center; padding: 40px; font-size: 12px; color: #475569; border-top: 1px solid #1e293b; margin-top: 60px; }
+  @media print { .footer { border-top-color: #e2e8f0; color: #94a3b8; } }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <svg class="cover-logo" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366f1"/><stop offset="100%" style="stop-color:#06b6d4"/></linearGradient>
+    </defs>
+    <circle cx="60" cy="60" r="52" fill="url(#g1)" opacity="0.15"/>
+    <circle cx="60" cy="60" r="48" fill="none" stroke="url(#g1)" stroke-width="1.5" opacity="0.6"/>
+    <path d="M68 22L42 62H56L50 98L82 52H66L68 22Z" fill="url(#g1)"/>
+  </svg>
+  <h1>AdxPower v1.0</h1>
+  <div class="subtitle">User Guide</div>
+  <div class="version">Complete step-by-step guide for all features</div>
+  <div class="date">August 2026</div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc page-break">
+  <h2>Table of Contents</h2>
+  <ol class="toc-list">
+    <li><a href="#profiles"><span class="num">1</span> Browser Profiles</a></li>
+    <li><a href="#proxies"><span class="num">2</span> Proxy Management</a></li>
+    <li><a href="#fingerprint"><span class="num">3</span> Fingerprint Manager</a></li>
+    <li><a href="#rpa"><span class="num">4</span> RPA Automation</a></li>
+    <li><a href="#sync"><span class="num">5</span> Synchronizer (Master-Slave)</a></li>
+    <li><a href="#cookie"><span class="num">6</span> Cookie Robot</a></li>
+    <li><a href="#extensions"><span class="num">7</span> Extensions Store</a></li>
+    <li><a href="#license"><span class="num">8</span> License Manager</a></li>
+    <li><a href="#payment"><span class="num">9</span> Store &amp; Payment</a></li>
+    <li><a href="#team"><span class="num">10</span> Team Collaboration</a></li>
+    <li><a href="#settings"><span class="num">11</span> System Settings</a></li>
+    <li><a href="#help"><span class="num">12</span> Help &amp; Support</a></li>
+  </ol>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- 1. BROWSER PROFILES -->
+<h2 class="section-title page-break" id="profiles">1. Browser Profiles</h2>
+<p>Browser Profiles are isolated Chromium instances, each with a unique fingerprint. Use them to manage multiple accounts safely without detection.</p>
+
+<h3>1.1 Creating a New Profile</h3>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Click <strong>New Profile</strong> button in the top-right corner of the Profiles page.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Enter a <strong>Profile Name</strong> (e.g., "Amazon Buyer Account - 02").</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Select a <strong>Group</strong>: E-commerce, Social Media, or Ads.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">4</span><span class="step-text">Choose an <strong>Operating System</strong> from 15 options (Windows 10/11, macOS Sonoma/Ventura/Monterey, Ubuntu, Debian, Fedora, Arch, ChromeOS, Android, iOS).</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">5</span><span class="step-text">Select a <strong>Browser Fingerprint</strong> from 25 options (Chrome, Firefox, Safari, Edge, Brave, Opera, Vivaldi, Waterfox).</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">6</span><span class="step-text">Optionally assign a <strong>Proxy</strong> from the dropdown (only active proxies appear).</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">7</span><span class="step-text">Add <strong>Tags</strong> (comma-separated, e.g., "Amazon, US, Buyer").</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">8</span><span class="step-text">Click <strong>Create Profile</strong>.</span></div></div>
+
+<h3>1.2 Starting a Profile</h3>
+<p>Click the <strong>Open</strong> button (green play icon) next to any stopped profile. A Chromium browser window launches with the profile's unique fingerprint. The status indicator changes to green "Running".</p>
+
+<h3>1.3 Stopping a Profile</h3>
+<p>Click the <strong>Close</strong> button (red square icon) on any running profile. The browser window closes and the profile returns to "Stopped" status.</p>
+
+<h3>1.4 Editing a Profile</h3>
+<p>Click the <strong>Edit</strong> button (pencil icon) to modify name, group, OS, browser, tags, or assigned proxy. Click <strong>Save Changes</strong> to apply.</p>
+
+<h3>1.5 Deleting a Profile</h3>
+<p>Click the <strong>Delete</strong> button (trash icon). A confirmation dialog appears. Confirm to move the profile to trash.</p>
+
+<h3>1.6 Filtering &amp; Searching</h3>
+<ul>
+  <li><strong>Group Filter</strong>: Use the dropdown to filter by All Groups, E-commerce, Social Media, or Ads</li>
+  <li><strong>Search</strong>: Type in the search box to filter profiles by name</li>
+  <li><strong>Sort</strong>: Click column headers to sort ascending/descending</li>
+  <li><strong>Bulk Select</strong>: Use checkboxes to select multiple profiles for batch operations</li>
+</ul>
+
+<h3>1.7 Proxy Display</h3>
+<p>If a profile has an assigned proxy, the proxy details appear in the table: protocol, host, port, country flag, and latency. Click <strong>Check Connection</strong> to verify the proxy is still active.</p>
+
+<div class="tip"><strong>Tip:</strong> Each profile gets its own user data directory, so cookies, history, and extensions are completely isolated between profiles.</div>
+
+<!-- 2. PROXY MANAGEMENT -->
+<h2 class="section-title page-break" id="proxies">2. Proxy Management</h2>
+<p>Manage proxies for your browser profiles. AdxPower supports HTTP, HTTPS, SOCKS4, and SOCKS5 protocols.</p>
+
+<h3>2.1 My Proxies</h3>
+<p>View all your proxies in a table. Each proxy shows host, port, protocol, country, status, latency, and assigned profiles.</p>
+
+<h4>Adding a Proxy Manually</h4>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Click <strong>Add Proxy</strong> in the My Proxies tab.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Enter <strong>Host</strong> (IP or domain) and <strong>Port</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Select <strong>Protocol</strong>: HTTP, HTTPS, SOCKS4, or SOCKS5.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">4</span><span class="step-text">Optionally enter <strong>Username</strong> and <strong>Password</strong> for authenticated proxies.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">5</span><span class="step-text">Click <strong>Save</strong>.</span></div></div>
+
+<h4>Scraping Free Proxies</h4>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Click <strong>Scrape Proxies</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Select a <strong>Country</strong> filter (US, GB, DE, FR, CA, JP, AU, NL, SG, KR, or All).</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Select a <strong>Protocol</strong> (or All).</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">4</span><span class="step-text">Click <strong>Start Scrape</strong>. Proxies are fetched from 3 sources: ProxyScrape API, GeoNode API, and GitHub.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">5</span><span class="step-text">Scraped proxies appear in the table with "untested" status.</span></div></div>
+
+<h4>Checking Proxy Connectivity</h4>
+<p>Click the <strong>Check</strong> button on any proxy. The system validates the connection via ipapi.co and updates: IP address, country, latency, and status (active/dead).</p>
+
+<h3>2.2 Proxy Checker (Bulk Import)</h3>
+<p>Paste multiple proxies (one per line, format: <code>host:port:username:password</code>) and check them all at once. Results show live status for each proxy.</p>
+
+<h3>2.3 Assigning a Proxy to a Profile</h3>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Open the <strong>Edit Profile</strong> modal on any profile.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Select a proxy from the <strong>Proxy</strong> dropdown.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Click <strong>Save Changes</strong>.</span></div></div>
+<p>The profile will now route all traffic through the assigned proxy when started.</p>
+
+<div class="tip"><strong>Tip:</strong> New profiles automatically get an available proxy assigned if one is available.</div>
+
+<!-- 3. FINGERPRINT MANAGER -->
+<h2 class="section-title page-break" id="fingerprint">3. Fingerprint Manager</h2>
+<p>Generate, view, and manage browser fingerprints. Each fingerprint contains spoofed data for WebGL, canvas, audio, fonts, and more.</p>
+
+<h3>3.1 Generating a Fingerprint</h3>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Select an <strong>Operating System</strong> from the generator panel.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Select a <strong>Browser</strong> version.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Click <strong>Generate</strong>. A unique fingerprint is created with random but realistic values.</span></div></div>
+
+<h3>3.2 Viewing Fingerprint Details</h3>
+<p>Click any saved fingerprint to view its full JSON structure including:</p>
+<ul>
+  <li><strong>WebGL</strong>: Vendor and renderer (e.g., "NVIDIA GeForce RTX 4090")</li>
+  <li><strong>Canvas</strong>: Noise seed for consistent canvas fingerprint</li>
+  <li><strong>Audio</strong>: AudioContext noise parameters</li>
+  <li><strong>Fonts</strong>: Allowed/blocked font list</li>
+  <li><strong>WebRTC</strong>: IP leak prevention settings</li>
+  <li><strong>Timezone</strong> and <strong>Locale</strong> settings</li>
+</ul>
+
+<h3>3.3 Exporting</h3>
+<p>Click <strong>Copy JSON</strong> to copy the full fingerprint to your clipboard for use in external tools.</p>
+
+<!-- 4. RPA AUTOMATION -->
+<h2 class="section-title page-break" id="rpa">4. RPA Automation</h2>
+<p>Automate browser tasks with a visual step builder. Create flows that navigate, click, type, and extract data from websites.</p>
+
+<h3>4.1 Building a Flow</h3>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Go to <strong>Automation → RPA Robot</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Select a <strong>Target Profile</strong> from the dropdown.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Click action buttons in the left panel to add steps:</span></div></div>
+
+<table>
+  <thead><tr><th>Action</th><th>What It Does</th><th>Config Needed</th></tr></thead>
+  <tbody>
+    <tr><td><strong>NAVIGATE</strong></td><td>Go to a URL</td><td>URL</td></tr>
+    <tr><td><strong>CLICK</strong></td><td>Click an element</td><td>CSS Selector</td></tr>
+    <tr><td><strong>DOUBLE_CLICK</strong></td><td>Double-click an element</td><td>CSS Selector</td></tr>
+    <tr><td><strong>RIGHT_CLICK</strong></td><td>Right-click an element</td><td>CSS Selector</td></tr>
+    <tr><td><strong>TYPE</strong></td><td>Type text into input</td><td>CSS Selector + Text</td></tr>
+    <tr><td><strong>WAIT</strong></td><td>Wait for duration</td><td>Duration in milliseconds</td></tr>
+    <tr><td><strong>SCROLL</strong></td><td>Scroll the page</td><td>Direction + Amount</td></tr>
+    <tr><td><strong>HOVER</strong></td><td>Hover over element</td><td>CSS Selector</td></tr>
+    <tr><td><strong>SELECT</strong></td><td>Select dropdown option</td><td>CSS Selector + Value</td></tr>
+    <tr><td><strong>SCREENSHOT</strong></td><td>Take a screenshot</td><td>Optional: file path</td></tr>
+    <tr><td><strong>PRESS_KEY</strong></td><td>Press keyboard key</td><td>Key name (Enter, Tab, etc.)</td></tr>
+    <tr><td><strong>EXTRACT_TEXT</strong></td><td>Extract text from element</td><td>CSS Selector</td></tr>
+  </tbody>
+</table>
+
+<div class="step"><div class="step-content"><span class="step-num">4</span><span class="step-text">Configure each step's parameters in the center panel.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">5</span><span class="step-text">Reorder steps by dragging (or use up/down buttons).</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">6</span><span class="step-text">Click <strong>Run Flow</strong> to execute. Monitor progress in the right panel log.</span></div></div>
+
+<h3>4.2 Example: Google Search Automation</h3>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text"><strong>NAVIGATE</strong> → <code>https://google.com</code></span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text"><strong>CLICK</strong> → <code>textarea[name='q']</code></span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text"><strong>TYPE</strong> → selector: <code>textarea[name='q']</code>, text: <code>AdxPower browser</code></span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">4</span><span class="step-text"><strong>PRESS_KEY</strong> → <code>Enter</code></span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">5</span><span class="step-text"><strong>WAIT</strong> → <code>3000</code> ms</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">6</span><span class="step-text"><strong>SCREENSHOT</strong> → capture results</span></div></div>
+
+<div class="tip"><strong>Tip:</strong> If the profile browser is not running, RPA will automatically start it before executing steps.</div>
+
+<!-- 5. SYNCHRONIZER -->
+<h2 class="section-title page-break" id="sync">5. Synchronizer (Master-Slave)</h2>
+<p>Control multiple browser profiles simultaneously. Actions performed on the master profile are replicated to all slave profiles.</p>
+
+<h3>5.1 Starting Synchronization</h3>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Go to <strong>Automation → Synchronizer</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Select a <strong>Master Profile</strong> (the profile you'll control from).</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Enable the sync options you want (see below).</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">4</span><span class="step-text">Click <strong>Start Sync</strong>. All other profiles auto-start as slaves.</span></div></div>
+
+<h3>5.2 Sync Options</h3>
+<table>
+  <thead><tr><th>Option</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>Clicks</td><td>Replicate mouse clicks</td></tr>
+    <tr><td>Typing</td><td>Replicate keyboard input</td></tr>
+    <tr><td>Scroll</td><td>Replicate page scrolling</td></tr>
+    <tr><td>Navigation</td><td>Replicate URL navigation</td></tr>
+    <tr><td>Form Fill</td><td>Replicate form field inputs</td></tr>
+    <tr><td>Dropdowns</td><td>Replicate dropdown selections</td></tr>
+    <tr><td>Mouse Move</td><td>Replicate mouse movement</td></tr>
+    <tr><td>Right Click</td><td>Replicate context menu actions</td></tr>
+    <tr><td>File Upload</td><td>Replicate file upload dialogs</td></tr>
+    <tr><td>Drag &amp; Drop</td><td>Replicate drag-and-drop actions</td></tr>
+    <tr><td>Hotkeys</td><td>Replicate keyboard shortcuts</td></tr>
+    <tr><td>Zoom</td><td>Replicate page zoom in/out</td></tr>
+  </tbody>
+</table>
+
+<h3>5.2 Stopping Synchronization</h3>
+<p>Click <strong>Stop Sync</strong>. All slave profiles are stopped automatically.</p>
+
+<div class="warning"><strong>Warning:</strong> Ensure all slave profiles have the same website open as the master for accurate replication.</div>
+
+<!-- 6. COOKIE ROBOT -->
+<h2 class="section-title page-break" id="cookie">6. Cookie Robot</h2>
+<p>Import cookies to age your profiles and make them look like real, established browsers.</p>
+
+<h3>6.1 Importing Cookies</h3>
+<h4>Option A: Paste Cookies</h4>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Go to <strong>Cookie Robot</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Select a <strong>Target Profile</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Paste cookies in JSON format or Netscape format into the text area.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">4</span><span class="step-text">Click <strong>Import Cookies</strong>.</span></div></div>
+
+<h4>Option B: Generate Cookies</h4>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Click <strong>Generate</strong> to create realistic cookies.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Cookies are generated for 8 major platforms: Google, YouTube, Facebook, Amazon, Twitter, LinkedIn, Instagram, TikTok.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Review and click <strong>Import</strong>.</span></div></div>
+
+<h4>Option C: Upload File</h4>
+<p>Click <strong>Upload File</strong> and select a .json or .txt cookie file from your computer.</p>
+
+<h3>6.2 Warmup Bot</h3>
+<p>The warmup bot visits real websites to age your profile and build a realistic browsing history.</p>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Select a <strong>Target Profile</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Check the websites you want to visit: Google, YouTube, Facebook, Amazon, Twitter, LinkedIn, Instagram, TikTok.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Click <strong>Start Warmup</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">4</span><span class="step-text">Monitor progress: a progress bar and live log show each site visit with timestamps.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">5</span><span class="step-text">The bot automatically scrolls, pauses, and navigates to simulate real user behavior.</span></div></div>
+
+<h3>6.3 Exporting Cookies</h3>
+<p>Click <strong>Export Cookies</strong> to download the current profile's cookies as a JSON file.</p>
+
+<!-- 7. EXTENSIONS STORE -->
+<h2 class="section-title page-break" id="extensions">7. Extensions Store</h2>
+<p>Install and manage browser extensions. Assign extensions to specific profiles for custom functionality.</p>
+
+<h3>7.1 Built-in Extensions</h3>
+<table>
+  <thead><tr><th>Extension</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><strong>MetaMask</strong></td><td>Cryptocurrency wallet for Ethereum</td></tr>
+    <tr><td><strong>AdBlock Plus</strong></td><td>Ad and tracker blocker</td></tr>
+    <tr><td><strong>Grammarly</strong></td><td>Writing assistant</td></tr>
+    <tr><td><strong>Proxy SwitchyOmega</strong></td><td>Proxy management extension</td></tr>
+  </tbody>
+</table>
+
+<h3>7.2 Installing an Extension</h3>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Go to <strong>Extensions</strong> in the sidebar.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Click <strong>Install</strong> on any extension card.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">The extension is now available for assignment.</span></div></div>
+
+<h3>7.3 Custom Extensions</h3>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Click <strong>Upload Custom</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Select a <code>.crx</code> or <code>.zip</code> extension file.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Enter a name and description.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">4</span><span class="step-text">Click <strong>Upload</strong>.</span></div></div>
+
+<h3>7.4 Assigning to Profiles</h3>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Click the <strong>Assign</strong> button on an extension.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Select one or more profiles from the list.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Click <strong>Confirm</strong>. The extension auto-loads when those profiles start.</span></div></div>
+
+<h3>7.5 Enabling/Disabling</h3>
+<p>Use the toggle switch on any assigned extension to enable or disable it for a specific profile without unassigning.</p>
+
+<!-- 8. LICENSE MANAGER -->
+<h2 class="section-title page-break" id="license">8. License Manager</h2>
+<p>Manage your AdxPower license. Activate, deactivate, transfer, or start a free trial.</p>
+
+<h3>8.1 Activating a License</h3>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Go to <strong>License Manager</strong> in the sidebar.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Enter your <strong>License Key</strong> (format: XXXX-XXXX-XXXX-XXXX).</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Click <strong>Activate</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">4</span><span class="step-text">Your license is now bound to this machine. The active license details appear: key, hardware ID, max profiles, expiry date.</span></div></div>
+
+<h3>8.2 Starting a Free Trial</h3>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Click <strong>Start Free Trial</strong> on the License Manager page.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">A 1-day trial activates with 3 max profiles.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">A countdown banner appears at the top of the app showing remaining time.</span></div></div>
+
+<div class="warning"><strong>Warning:</strong> Only one trial is allowed per hardware ID. After expiry, you must purchase a plan.</div>
+
+<h3>8.3 Transferring a License</h3>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">On the old machine, click <strong>Deactivate</strong> to unbind the license from this hardware.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">On the new machine, enter the same license key and click <strong>Activate</strong>.</span></div></div>
+
+<h3>8.4 Offline Activation</h3>
+<p>For machines without internet access:</p>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">On an offline machine, note the hardware ID shown in License Manager.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">On an online machine, use the <strong>Offline Activation</strong> section to generate an activation key.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Enter the generated key on the offline machine to activate.</span></div></div>
+
+<!-- 9. STORE & PAYMENT -->
+<h2 class="section-title page-break" id="payment">9. Store &amp; Payment</h2>
+<p>Purchase an AdxPower license plan through PayPal. Card payments (Visa, Mastercard, AMEX, Discover) are also accepted through PayPal.</p>
+
+<h3>9.1 Available Plans</h3>
+<table>
+  <thead><tr><th>Plan</th><th>Price</th><th>Duration</th><th>Max Profiles</th><th>Features</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Starter</strong></td><td>$5/mo</td><td>30 days</td><td>10</td><td>Basic Proxy Support, Email Support</td></tr>
+    <tr><td><strong>Professional</strong></td><td>$25/mo</td><td>30 days</td><td>50</td><td>Advanced Proxy, RPA Automation, Priority Support</td></tr>
+    <tr><td><strong>Agency</strong></td><td>$99/mo</td><td>30 days</td><td>200</td><td>Team Collaboration, Full API Access, Dedicated Support</td></tr>
+    <tr><td><strong>One-Time</strong></td><td>$199</td><td>Lifetime</td><td>200</td><td>All features, Lifetime Updates, Dedicated Support</td></tr>
+  </tbody>
+</table>
+
+<h3>9.2 Purchasing a Plan</h3>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Go to <strong>Store</strong> (shopping cart icon in the sidebar).</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Click on a plan card to select it. Click <strong>Continue</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Enter your <strong>email address</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">4</span><span class="step-text">Click <strong>Pay</strong>. You are redirected to PayPal.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">5</span><span class="step-text">Complete payment on PayPal (log in or pay as guest with a card).</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">6</span><span class="step-text">After payment, you are redirected back to AdxPower.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">7</span><span class="step-text">Your license key is displayed. Copy it and activate in License Manager.</span></div></div>
+
+<h3>9.3 Accepted Payment Methods</h3>
+<p>Through PayPal, you can pay with:</p>
+<ul>
+  <li>PayPal balance</li>
+  <li>Visa credit/debit card</li>
+  <li>Mastercard credit/debit card</li>
+  <li>American Express</li>
+  <li>Discover card</li>
+  <li>Any card PayPal supports</li>
+</ul>
+
+<div class="tip"><strong>Tip:</strong> You don't need a PayPal account to pay. PayPal allows guest checkout with any card.</div>
+
+<!-- 10. TEAM COLLABORATION -->
+<h2 class="section-title page-break" id="team">10. Team Collaboration</h2>
+<p>Invite team members, manage roles, track activity, and transfer profiles.</p>
+
+<h3>10.1 Inviting a Team Member</h3>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Go to <strong>Team</strong> in the sidebar.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Click <strong>Invite Member</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Enter <strong>Name</strong> and <strong>Email</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">4</span><span class="step-text">Select a <strong>Role</strong>: Admin or Member.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">5</span><span class="step-text">Click <strong>Invite</strong>.</span></div></div>
+
+<h3>10.2 Roles</h3>
+<table>
+  <thead><tr><th>Role</th><th>Permissions</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Admin</strong></td><td>Full access: manage members, view all logs, transfer profiles</td></tr>
+    <tr><td><strong>Member</strong></td><td>View profiles, manage own assigned profiles, limited settings</td></tr>
+  </tbody>
+</table>
+
+<h3>10.3 Activity Logs</h3>
+<p>View a chronological log of all actions performed by team members:</p>
+<ul>
+  <li>Filter by action type, user, or date</li>
+  <li>Click <strong>Export CSV</strong> to download logs as a spreadsheet</li>
+  <li>Click <strong>Clear Logs</strong> to remove all log entries (Admin only)</li>
+</ul>
+
+<h3>10.4 Profile Transfer</h3>
+<p>Transfer profiles between team members for workload distribution.</p>
+<div class="step"><div class="step-content"><span class="step-num">1</span><span class="step-text">Go to <strong>Team → Profile Transfer</strong>.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">2</span><span class="step-text">Select the profiles to transfer.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">3</span><span class="step-text">Select the destination team member.</span></div></div>
+<div class="step"><div class="step-content"><span class="step-num">4</span><span class="step-text">Click <strong>Transfer</strong>.</span></div></div>
+
+<!-- 11. SYSTEM SETTINGS -->
+<h2 class="section-title page-break" id="settings">11. System Settings</h2>
+<p>Configure browser engine, RPA behavior, and view license information.</p>
+
+<h3>11.1 Browser Core Settings</h3>
+<table>
+  <thead><tr><th>Setting</th><th>Description</th><th>Default</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Chromium Binary Path</strong></td><td>Path to Chrome/Chromium executable. Click Browse to select.</td><td>Auto-detected</td></tr>
+    <tr><td><strong>Browser Version</strong></td><td>Target browser version for fingerprint generation</td><td>Chrome 122</td></tr>
+    <tr><td><strong>CDP Port</strong></td><td>Chrome DevTools Protocol port for remote debugging</td><td>9222</td></tr>
+  </tbody>
+</table>
+
+<h3>11.2 RPA Settings</h3>
+<table>
+  <thead><tr><th>Setting</th><th>Description</th><th>Default</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Action Delay</strong></td><td>Milliseconds between RPA steps</td><td>500ms</td></tr>
+    <tr><td><strong>Execution Logging</strong></td><td>Log every RPA action to the activity log</td><td>Enabled</td></tr>
+  </tbody>
+</table>
+
+<h3>11.3 License Information</h3>
+<p>View your current license details: key, hardware ID, plan, max profiles, and expiry date. This section is read-only.</p>
+
+<!-- 12. HELP & SUPPORT -->
+<h2 class="section-title page-break" id="help">12. Help &amp; Support</h2>
+
+<h3>12.1 Documentation</h3>
+<p>Access the full technical documentation at <code>docs/DOCUMENTATION.md</code> in the project folder. It covers API endpoints, database schema, deployment, and troubleshooting.</p>
+
+<h3>12.2 System Information</h3>
+<p>The Help page displays your current system info: app version, OS, node version, and backend connection status.</p>
+
+<h3>12.3 Contact Support</h3>
+<p>For issues, bugs, or feature requests, contact through the support channels listed in the Help section.</p>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>AdxPower v1.0 — User Guide</p>
+  <p>August 2026 · All rights reserved</p>
+</div>
+
+</body>
+</html>

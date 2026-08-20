@@ -1,0 +1,6 @@
+node_modules
+dist
+profiles-data
+user_data
+data
+.env

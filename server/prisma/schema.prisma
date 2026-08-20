@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  password String
+  subscription Subscription?
+  license License?
+  profiles Profile[]
+  proxies Proxy[]
+  orders Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Subscription {
+  id String @id @default(uuid())
+  userId String @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status String
+  plan String
+  currentPeriodEnd DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model License {
+  id String @id @default(uuid())
+  userId String @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  licenseKey String @unique
+  hardwareId String?
+  status String @default("active")
+  maxProfiles Int @default(2)
+  isTrial Boolean @default(false)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id String @id @default(uuid())
+  userId String?
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customerEmail String
+  plan String
+  amount Int
+  currency String @default("USD")
+  paymentMethod String
+  paymentId String?
+  status String @default("pending")
+  licenseKey String?
+  metadata Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerEmail])
+  @@index([paymentId])
+}
+
+model TrialTracker {
+  id String @id @default(uuid())
+  hardwareId String @unique
+  activatedAt DateTime @default(now())
+  expiresAt DateTime
+  status String @default("active")
+  createdAt DateTime @default(now())
+}
+
+model Profile {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name String
+  group String @default("Default")
+  proxyId String?
+  proxy Proxy? @relation(fields: [proxyId], references: [id], onDelete: SetNull)
+  status String @default("stopped")
+  os String? @default("Windows")
+  browser String? @default("Chrome 120.0")
+  tags String[]
+  fingerprint Json?
+  profileExtensions ProfileExtension[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Proxy {
+  id String @id @default(uuid())
+  userId String?
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  host String
+  port Int
+  username String?
+  password String?
+  protocol String @default("http")
+  status String @default("untested")
+  ip String?
+  country String?
+  countryName String?
+  latency Int?
+  lastChecked DateTime?
+  isActive Boolean @default(true)
+  assignedProfileId String?
+  profiles Profile[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Extension {
+  id String @id @default(uuid())
+  name String
+  extId String @unique
+  description String @default("")
+  icon String @default("📦")
+  version String @default("1.0.0")
+  size String @default("0 MB")
+  isCustom Boolean @default(false)
+  filePath String?
+  profileExtensions ProfileExtension[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProfileExtension {
+  id String @id @default(uuid())
+  profileId String
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  extensionId String
+  extension Extension @relation(fields: [extensionId], references: [id], onDelete: Cascade)
+  enabled Boolean @default(true)
+  createdAt DateTime @default(now())
+  @@unique([profileId, extensionId])
+}
+
+model TeamMember {
+  id String @id @default(uuid())
+  userId String
+  name String
+  email String
+  role String @default("Member")
+  sharedProfileCount Int @default(0)
+  status String @default("Active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ActivityLog {
+  id String @id @default(uuid())
+  userId String?
+  userName String @default("System")
+  action String
+  target String @default("")
+  details Json?
+  ip String?
+  status String @default("Success")
+  createdAt DateTime @default(now())
+}
