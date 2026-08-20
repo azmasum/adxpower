@@ -24,7 +24,7 @@ function getServerUrl(): string {
       if (settings.serverUrl) return settings.serverUrl;
     }
   } catch {}
-  return `http://localhost:3000`;
+  return `https://adxpower-api.onrender.com`;
 }
 
 function getApiUrl(): string {

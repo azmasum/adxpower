@@ -1,5 +1,5 @@
 const STORAGE_KEY = 'adxpower_server_url';
-const DEFAULT_API = 'http://localhost:3000';
+const DEFAULT_API = 'https://adxpower-api.onrender.com';
 
 function getServerUrl(): string {
   try {
