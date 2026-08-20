@@ -13,6 +13,5 @@ template.db
 .DS_Store
 Thumbs.db
 *.log
-package-lock.json
 Dockerfile
 docker-compose.yml

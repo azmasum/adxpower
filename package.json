@@ -7,7 +7,9 @@
     "server"
   ],
   "scripts": {
-    "bootstrap": "npm install"
+    "bootstrap": "npm install",
+    "build:server": "cd server && npx prisma generate && npx nest build",
+    "start:server": "cd server && npx prisma migrate deploy && node dist/main.js"
   },
   "dependencies": {
     "7zip-bin": "^5.2.0",
