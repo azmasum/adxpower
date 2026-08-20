@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Clock, AlertTriangle, X } from 'lucide-react';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, getHardwareId } from '../config';
 
 export const TrialBanner: React.FC = () => {
   const [trial, setTrial] = useState<any>(null);
@@ -8,18 +8,16 @@ export const TrialBanner: React.FC = () => {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('hwid');
-    if (stored) {
-      setHwid(stored);
-      fetch(`${API_BASE_URL}/license/trial/status?hardwareId=${stored}`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.hasTrial && data.status === 'active') {
-            setTrial(data);
-          }
-        })
-        .catch(() => {});
-    }
+    const stored = getHardwareId();
+    setHwid(stored);
+    fetch(`${API_BASE_URL}/license/trial/status?hardwareId=${stored}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.hasTrial && data.status === 'active') {
+          setTrial(data);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   if (!trial || dismissed) return null;

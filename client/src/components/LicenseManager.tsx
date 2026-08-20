@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Key, Cpu, CheckCircle, XCircle, Copy, Trash2, Shield, Monitor, Calendar, AlertTriangle, Download, Clock } from 'lucide-react';
-import { API_BASE_URL, API_URL } from '../config';
+import { API_BASE_URL, API_URL, getHardwareId } from '../config';
 
 export const LicenseManager: React.FC = () => {
   const [licenseKey, setLicenseKey] = useState('');
@@ -15,33 +15,13 @@ export const LicenseManager: React.FC = () => {
   const [showOffline, setShowOffline] = useState(false);
 
   useEffect(() => {
-    const generateHWID = () => {
-      let stored = localStorage.getItem('hwid');
-      if (!stored) {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        ctx!.textBaseline = 'top';
-        ctx!.font = '14px Arial';
-        ctx!.fillText('fingerprint', 2, 2);
-        const fp = canvas.toDataURL();
-        const raw = `${navigator.userAgent}-${fp}-${screen.width}x${screen.height}-${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
-        let hash = 0;
-        for (let i = 0; i < raw.length; i++) {
-          const char = raw.charCodeAt(i);
-          hash = ((hash << 5) - hash) + char;
-          hash = hash & hash;
-        }
-        stored = `ADX-${Math.abs(hash).toString(16).toUpperCase()}-PC01`;
-        localStorage.setItem('hwid', stored);
-      }
-      setHwid(stored);
+    const id = getHardwareId();
+    setHwid(id);
 
-      fetch(`${API_BASE_URL}/license/trial/status?hardwareId=${stored}`)
-        .then(r => r.json())
-        .then(setTrialStatus)
-        .catch(() => {});
-    };
-    generateHWID();
+    fetch(`${API_BASE_URL}/license/trial/status?hardwareId=${id}`)
+      .then(r => r.json())
+      .then(setTrialStatus)
+      .catch(() => {});
   }, []);
 
   const handleActivate = async () => {
