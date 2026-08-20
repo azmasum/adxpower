@@ -24,6 +24,11 @@ export const DEV_HARDWARE_ID = import.meta.env.VITE_HARDWARE_ID || '';
 
 export function getHardwareId(): string {
   if (DEV_HARDWARE_ID) return DEV_HARDWARE_ID;
+  const legacyHwid = localStorage.getItem('hwid');
+  if (legacyHwid) {
+    localStorage.setItem('hardware_id', legacyHwid);
+    return legacyHwid;
+  }
   const stored = localStorage.getItem('hardware_id');
   if (stored) return stored;
   const id = `PC-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
