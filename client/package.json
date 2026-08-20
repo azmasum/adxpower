@@ -12,11 +12,13 @@
     "electron:build": "tsc -p tsconfig.electron.json && npm run build && electron-builder --win"
   },
   "dependencies": {
+    "@types/ws": "^8.18.1",
     "axios": "^1.6.0",
     "lucide-react": "^0.290.0",
     "node-machine-id": "^1.1.12",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "ws": "^8.21.3",
     "zustand": "^4.4.0"
   },
   "devDependencies": {

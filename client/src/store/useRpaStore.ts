@@ -75,42 +75,66 @@ export const useRpaStore = create<RpaStore>((set, get) => ({
     try {
       addLog(`Starting flow with ${steps.length} steps for profile ${selectedProfileId}...`);
       
-      const payload = {
-        profileId: selectedProfileId,
-        steps: steps.map((s) => ({
+      const electronAPI = (window as any).electronAPI;
+
+      if (electronAPI?.executeRpa) {
+        addLog(`Running locally via Electron CDP...`);
+        const result = await electronAPI.executeRpa(selectedProfileId, steps.map((s) => ({
           type: s.type,
           url: s.url,
           value: s.value,
           selector: s.selector,
           text: s.text,
-        })),
-      };
+          direction: s.direction,
+        })));
 
-      addLog(`POST ${API_BASE_URL}/rpa/run`);
-      
-      const res = await fetch(`${API_BASE_URL}/rpa/run`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-hardware-id': getHardwareId() },
-        body: JSON.stringify(payload),
-      });
+        if (result.logs) {
+          result.logs.forEach((l: string) => addLog(l));
+        }
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || `HTTP ${res.status}`);
-      }
-
-      if (data.logs) {
-        data.logs.forEach((l: string) => addLog(l));
-      }
-
-      if (data.success) {
-        addLog(`✅ Flow completed - ${data.total} steps`);
+        if (result.success) {
+          addLog(`Flow completed - ${result.total} steps`);
+        } else {
+          addLog(`Flow failed: ${result.error}`);
+        }
       } else {
-        addLog(`❌ Flow failed at step ${data.completed}: ${data.error}`);
+        const payload = {
+          profileId: selectedProfileId,
+          steps: steps.map((s) => ({
+            type: s.type,
+            url: s.url,
+            value: s.value,
+            selector: s.selector,
+            text: s.text,
+          })),
+        };
+
+        addLog(`POST ${API_BASE_URL}/rpa/run`);
+        
+        const res = await fetch(`${API_BASE_URL}/rpa/run`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-hardware-id': getHardwareId() },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || `HTTP ${res.status}`);
+        }
+
+        if (data.logs) {
+          data.logs.forEach((l: string) => addLog(l));
+        }
+
+        if (data.success) {
+          addLog(`Flow completed - ${data.total} steps`);
+        } else {
+          addLog(`Flow failed at step ${data.completed}: ${data.error}`);
+        }
       }
     } catch (e: any) {
-      addLog(`❌ ERROR: ${e.message}`);
+      addLog(`ERROR: ${e.message}`);
       console.error('RPA Run Error', e);
     } finally {
       set({ isRunning: false });
